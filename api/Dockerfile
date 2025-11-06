@@ -24,15 +24,19 @@ ENV PORT=8080
 # Expose port
 EXPOSE 8080
 
-# Start command - verify database exists, then start gunicorn with logging
-CMD /bin/sh -c "echo 'Starting Hydropage API...' && \
-    ls -lh hydropage.db && \
-    echo 'Starting gunicorn on port ${PORT}...' && \
-    gunicorn app:app \
+# Add healthcheck directly in Docker
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import urllib.request, os; urllib.request.urlopen(f'http://localhost:{os.getenv(\"PORT\", \"8080\")}/api/health').read()" || exit 1
+
+# Start command - simplified for Railway
+CMD gunicorn app:app \
     --bind 0.0.0.0:${PORT} \
     --workers 2 \
+    --worker-class sync \
     --timeout 120 \
+    --keep-alive 5 \
     --log-level info \
     --access-logfile - \
     --error-logfile - \
-    --preload"
+    --capture-output \
+    --enable-stdio-inheritance
