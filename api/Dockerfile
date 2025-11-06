@@ -16,7 +16,7 @@ COPY . .
 
 # Verify database file was copied
 RUN ls -lh hydropage.db && echo "Database found!" && \
-    python -c "import sqlite3; conn = sqlite3.connect('hydropage.db'); print(f'Tables: {[r[0] for r in conn.execute(\"SELECT name FROM sqlite_master WHERE type=\\\"table\\\"\").fetchall()]}'); conn.close()"
+    python -c "import sqlite3; conn = sqlite3.connect('hydropage.db'); cur = conn.cursor(); cur.execute('SELECT COUNT(*) FROM sqlite_master WHERE type=\"table\"'); print('Tables found:', cur.fetchone()[0]); conn.close()"
 
 # Set default PORT if not provided (Railway will override)
 ENV PORT=8080
