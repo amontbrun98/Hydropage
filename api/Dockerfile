@@ -14,11 +14,14 @@ RUN python -m pip install --upgrade pip && \
 # Copy application code
 COPY . .
 
+# Verify database file was copied
+RUN ls -lh hydropage.db && echo "Database found!"
+
 # Set default PORT if not provided (Railway will override)
 ENV PORT=8080
 
 # Expose port
 EXPOSE 8080
 
-# Start command - use shell to expand environment variables
-CMD /bin/sh -c "gunicorn app:app --bind 0.0.0.0:${PORT} --workers 2 --timeout 120"
+# Start command - use shell to expand environment variables with access logs
+CMD /bin/sh -c "gunicorn app:app --bind 0.0.0.0:${PORT} --workers 2 --timeout 120 --access-logfile - --error-logfile -"
