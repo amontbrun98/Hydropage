@@ -14,8 +14,11 @@ RUN python -m pip install --upgrade pip && \
 # Copy application code
 COPY . .
 
-# Expose port (Railway will set PORT env var)
-EXPOSE $PORT
+# Set default PORT if not provided (Railway will override)
+ENV PORT=8080
 
-# Start command
-CMD gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+# Expose port
+EXPOSE 8080
+
+# Start command - use shell to expand environment variables
+CMD /bin/sh -c "gunicorn app:app --bind 0.0.0.0:${PORT} --workers 2 --timeout 120"
