@@ -4,7 +4,6 @@ __pycache__
 *.pyd
 .Python
 *.so
-*.db
 *.db-journal
 .env
 .venv
