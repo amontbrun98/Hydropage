@@ -15,7 +15,8 @@ RUN python -m pip install --upgrade pip && \
 COPY . .
 
 # Verify database file was copied
-RUN ls -lh hydropage.db && echo "Database found!"
+RUN ls -lh hydropage.db && echo "Database found!" && \
+    python -c "import sqlite3; conn = sqlite3.connect('hydropage.db'); print(f'Tables: {[r[0] for r in conn.execute(\"SELECT name FROM sqlite_master WHERE type=\\\"table\\\"\").fetchall()]}'); conn.close()"
 
 # Set default PORT if not provided (Railway will override)
 ENV PORT=8080
@@ -23,5 +24,15 @@ ENV PORT=8080
 # Expose port
 EXPOSE 8080
 
-# Start command - use shell to expand environment variables with access logs
-CMD /bin/sh -c "gunicorn app:app --bind 0.0.0.0:${PORT} --workers 2 --timeout 120 --access-logfile - --error-logfile -"
+# Start command - verify database exists, then start gunicorn with logging
+CMD /bin/sh -c "echo 'Starting Hydropage API...' && \
+    ls -lh hydropage.db && \
+    echo 'Starting gunicorn on port ${PORT}...' && \
+    gunicorn app:app \
+    --bind 0.0.0.0:${PORT} \
+    --workers 2 \
+    --timeout 120 \
+    --log-level info \
+    --access-logfile - \
+    --error-logfile - \
+    --preload"
